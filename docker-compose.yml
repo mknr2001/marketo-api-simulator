@@ -1,0 +1,59 @@
+version: "3.8"
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: marketo-db
+    restart: always
+    environment:
+      POSTGRES_USER: marketo
+      POSTGRES_PASSWORD: marketo_secure_password_123
+      POSTGRES_DB: marketo_simulator
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U marketo -d marketo_simulator"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: marketo-api
+    restart: always
+    ports:
+      - "8000:8000"
+    environment:
+      APP_NAME: "Marketo API Simulator"
+      APP_ENV: "local"
+      APP_HOST: "0.0.0.0"
+      APP_PORT: "8000"
+      LOG_LEVEL: "INFO"
+      DATABASE_URL: "postgresql://marketo:marketo_secure_password_123@db:5432/marketo_simulator"
+      MOCK_CLIENT_ID: "marketo-poc-client"
+      MOCK_CLIENT_SECRET: "change-me"
+      ACCESS_TOKEN_TTL_SECONDS: "3599"
+      TOKEN_HASH_SECRET: "replace-with-a-long-random-value"
+      QUEUE_DELAY_SECONDS: "2"
+      PROCESSING_DELAY_SECONDS: "5"
+      MAX_EXPORT_RANGE_DAYS: "30"
+      MAX_ACTIVE_EXPORT_JOBS: "10"
+      MIN_RECORDS_PER_DAY: "1"
+      MAX_RECORDS_PER_DAY: "5"
+      MAX_RECORDS_PER_EXPORT: "10000"
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health/live"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+volumes:
+  postgres_data:
+    driver: local
