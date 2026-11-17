@@ -52,8 +52,13 @@ class Settings(BaseSettings):
     @field_validator("DATABASE_URL", mode="before")
     @classmethod
     def normalize_database_url(cls, v: str) -> str:
-        if isinstance(v, str) and v.startswith("postgres://"):
-            return v.replace("postgres://", "postgresql://", 1)
+        import os
+
+        if isinstance(v, str):
+            if v.startswith("postgres://"):
+                return v.replace("postgres://", "postgresql://", 1)
+            if "VERCEL" in os.environ and v.startswith("sqlite:///./"):
+                return "sqlite:////tmp/marketo_simulator.db"
         return v
 
     @field_validator("MIN_RECORDS_PER_DAY")

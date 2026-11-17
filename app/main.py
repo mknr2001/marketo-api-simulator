@@ -30,10 +30,9 @@ async def lifespan(app: FastAPI) -> Any:
     setup_logging(log_level=settings.LOG_LEVEL)
     logger.info("Starting %s in %s environment", settings.APP_NAME, settings.APP_ENV)
 
-    # Initialize tables automatically for SQLite local/test modes
-    if settings.DATABASE_URL.startswith("sqlite"):
-        Base.metadata.create_all(bind=engine)
-        logger.info("SQLite database tables initialized successfully")
+    # Initialize tables automatically
+    Base.metadata.create_all(bind=engine)
+    logger.info("Database tables verified and initialized successfully")
 
     yield
 
