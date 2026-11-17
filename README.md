@@ -1,3 +1,13 @@
+---
+title: Marketo API Simulator
+emoji: 📈
+colorFrom: blue
+colorTo: indigo
+sdk: docker
+app_port: 8000
+pinned: false
+---
+
 # Marketo Bulk Activity API Simulator
 
 A high-fidelity Python backend simulator for the Marketo Bulk Activity Export API (specifically activity type 2: *Fill Out Form*). Built with **Python 3.12**, **FastAPI**, **Pydantic v2**, and **SQLAlchemy 2.x**, this service provides a realistic, reproducible upstream data source for downstream Ab Initio ETL and Databricks ingestion pipelines.
