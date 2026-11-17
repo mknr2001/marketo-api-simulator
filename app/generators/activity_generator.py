@@ -179,7 +179,7 @@ def generate_activity_records(
                 "CAPTCHARawScore": captcha_raw,
                 "ClientIPAddress": client_ip,
                 "FormFields": form_fields_str,
-                "mRFSBrand": brand,
+                "mRFSBrand": None,
                 "mRFSConsentChannel": None,
                 "mRFSConsentType": None,
                 "mRFSCountry": None,

@@ -237,11 +237,11 @@ The downloaded TSV contains **exactly 21 columns** separated by horizontal tab c
 | **8** | `CAPTCHAProvider` | *Empty* | Null (represented as empty tab field) |
 | **9** | `CAPTCHARawScore` | *Empty* | Null (represented as empty tab field) |
 | **10** | `ClientIPAddress` | `203.0.113.19` or *Empty* | RFC 5737 documentation IP for standard forms |
-| **11** | `FormFields` | `a:10:{s:13:"mRFSFirstName";s:4:"Zeta";...}` | PHP-serialized associative array |
-| **12** | `mRFSBrand` | `BT` or *Empty* | Brand identifier |
-| **13** | `mRFSConsentChannel` | *Empty* | Empty tab field |
-| **14** | `mRFSConsentType` | *Empty* | Empty tab field |
-| **15** | `mRFSCountry` | *Empty* | Empty tab field |
+| **11** | `FormFields` | `a:14:{s:9:"mRFSBrand";s:2:"BT";...}` | PHP-serialized array (contains `mRFSBrand`, `mRFSConsentChannel`, `mRFSConsentType`, `mRFSCountry`) |
+| **12** | `mRFSBrand` | *Empty* | Top-level raw null (assigned from FormFields downstream in Databricks) |
+| **13** | `mRFSConsentChannel` | *Empty* | Top-level raw null (assigned from FormFields downstream in Databricks) |
+| **14** | `mRFSConsentType` | *Empty* | Top-level raw null (assigned from FormFields downstream in Databricks) |
+| **15** | `mRFSCountry` | *Empty* | Top-level raw null (assigned from FormFields downstream in Databricks) |
 | **16** | `ProgramName` | *Empty* | Empty tab field |
 | **17** | `ProgramType` | *Empty* | Empty tab field |
 | **18** | `QueryParameters` | `{}` or `utm_source=...` | Literal JSON `{}` or UTM query string |
@@ -252,6 +252,21 @@ The downloaded TSV contains **exactly 21 columns** separated by horizontal tab c
 ### Top-Level Null vs Internal FormFields Null
 1. **Top-level TSV Nulls**: Written as **empty fields between tabs** (e.g. `colA\t\tcolC`). Never written as literal `"Null"`.
 2. **FormFields Nulls**: Written in PHP serialization format as **`N;`** (e.g. `s:9:"eventDate";N;`).
+
+### Downstream Databricks Attribute Extraction Scenarios
+
+In raw Marketo activity exports, `mRFSBrand`, `mRFSConsentChannel`, `mRFSConsentType`, and `mRFSCountry` originate inside the PHP-serialized `FormFields` payload. In downstream Databricks / ETL ingestion pipelines, these values are parsed from `FormFields` and assigned to their respective columns.
+
+The simulator generates **6 distinct, realistic scenarios** across exported records to thoroughly test downstream Databricks transformation rules:
+
+| Scenario | Distribution | Fields Inside `FormFields` | Expected Databricks Transformation Result |
+| :--- | :---: | :--- | :--- |
+| **1. Full Profile** | **30%** | All 4 fields present (`mRFSBrand`, `mRFSConsentChannel`, `mRFSConsentType`, `mRFSCountry`) | All 4 target columns populated with clean string values |
+| **2. Brand & Country Only** | **20%** | `mRFSBrand` and `mRFSCountry` present; consent fields omitted | Brand & Country populated; Consent Channel & Type assigned `NULL` |
+| **3. Brand & Consent Only** | **15%** | `mRFSBrand`, `mRFSConsentChannel`, `mRFSConsentType` present; Country omitted | Brand & Consent fields populated; Country assigned `NULL` |
+| **4. Country Only** | **15%** | `mRFSCountry` present; Brand and Consent omitted | Country populated; Brand & Consent fields assigned `NULL` |
+| **5. Messy / Partial Nulls** | **10%** | Fields present but contain explicit PHP nulls (`N;`) or empty strings (`s:0:"";`) | Tests Databricks null-handling; empty strings & `N;` mapped to `NULL` |
+| **6. Completely Omitted** | **10%** | None of the 4 fields appear inside `FormFields` (legacy / generic forms) | Tests fallback logic; all 4 target columns safely assigned `NULL` |
 
 ---
 
