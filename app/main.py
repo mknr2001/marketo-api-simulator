@@ -58,6 +58,7 @@ def create_app() -> FastAPI:
         redoc_url=None,
         openapi_url="/openapi.json",
         lifespan=lifespan,
+        redirect_slashes=False,
     )
 
     # ── Middleware ────────────────────────────────────────────────
