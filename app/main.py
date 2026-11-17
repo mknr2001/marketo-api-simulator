@@ -97,6 +97,11 @@ def create_app() -> FastAPI:
     # ── Exception Handlers ────────────────────────────────────────
     register_exception_handlers(app)
 
+    # ── Root Redirect ─────────────────────────────────────────────
+    @app.get("/", include_in_schema=False)
+    async def root_redirect() -> Response:
+        return Response(status_code=307, headers={"Location": "/docs"})
+
     # ── Routers ───────────────────────────────────────────────────
     app.include_router(auth_router)
     app.include_router(exports_router)
