@@ -3,26 +3,22 @@ services:
     name: marketo-api-simulator
     env: python
     plan: free
-    buildCommand: "pip install -r requirements.txt && alembic upgrade head"
+    buildCommand: "pip install -r requirements.txt"
     startCommand: "uvicorn app.main:app --host 0.0.0.0 --port $PORT"
     healthCheckPath: /health/live
     envVars:
       - key: PYTHON_VERSION
         value: 3.12.8
       - key: APP_ENV
-        value: production
+        value: local
       - key: LOG_LEVEL
         value: INFO
-      - key: DATABASE_URL
-        fromDatabase:
-          name: marketo-postgres
-          property: connectionString
       - key: MOCK_CLIENT_ID
         value: marketo-poc-client
       - key: MOCK_CLIENT_SECRET
-        generateValue: true
+        value: change-me
       - key: TOKEN_HASH_SECRET
-        generateValue: true
+        value: marketo-simulator-secret-token-hash-key-2026
       - key: ACCESS_TOKEN_TTL_SECONDS
         value: "3599"
       - key: QUEUE_DELAY_SECONDS
@@ -39,8 +35,3 @@ services:
         value: "5"
       - key: MAX_RECORDS_PER_EXPORT
         value: "10000"
-
-databases:
-  - name: marketo-postgres
-    plan: free
-    postgresMajorVersion: 16
