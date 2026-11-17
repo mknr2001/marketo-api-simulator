@@ -72,8 +72,10 @@ def create_app() -> FastAPI:
         response: Response = await call_next(request)
         duration_ms = round((time.perf_counter() - start_time) * 1000, 2)
 
-        # Attach request ID header to all responses
+        # Attach request ID and debug headers to all responses
         response.headers["X-Request-Id"] = req_id
+        response.headers["X-Seen-Path"] = request.url.path
+        response.headers["X-Matched-Path"] = request.headers.get("x-matched-path", "none")
 
         # Skip logging health checks to reduce noise
         if not request.url.path.startswith("/health"):
